@@ -81,24 +81,7 @@ public class WebHookController {
                 start(client, message);
 
 
-
-            SendInvoice sendInvoice = new SendInvoice();
-            sendInvoice.setChatId(client.getIdClient());
-            sendInvoice.setTitle("Product Name");
-            sendInvoice.setDescription("Product Description");
-            sendInvoice.setPayload("custom_payload");
-            sendInvoice.setProviderToken("381764678:TEST:80071");
-            sendInvoice.setStartParameter("test");
-            sendInvoice.setCurrency("RUB");
-            sendInvoice.setPrices(Arrays.asList(new LabeledPrice[]{new LabeledPrice("Руб", 99900)}));
-            //sendInvoice.setProviderData("{\"shop_id\": " + SHOP_ID + ", \"shop_article_id\": " + SHOP_ARTICLE_ID + "}");// in cents
-
-            try {
-                // Send the invoice
-                bot.execute(sendInvoice);
-            } catch (TelegramApiException e) {
-                e.printStackTrace();
-            }
+//
             } else if (update.hasMessage() && update.getMessage().hasText() && update.getMessage().getText().equals("photo")) {
                 sendPhotoMessage(Long.parseLong(String.valueOf(update.getMessage().getChatId())), "https://disk.yandex.ru/i/eNx-09JOMPXYyQ");
 
@@ -221,16 +204,80 @@ public class WebHookController {
                 deleteMessageText(client.getIdClient(), lastMessageIds.get(client.getIdClient()));
                 deleteMessageText(client.getIdClient(), lastMessageIdsPhoto.get(client.getIdClient()));
 
-                messageText(client.getIdClient(), "✅Портфолио:",
-                        "✅Бот-тест","✅VPN бот", "✅ПсихоБот", "✅QrCode бот", "✅Тренажер умножения", "✅Шар судьбы бот", "Назад",
-                        "bot-test","vpnBot", "psychoBot", "qrBot", "multiBot", "magicBall", "back1");
+                messageText(client.getIdClient(), "\uD83D\uDD06Базовые функции бота:",
+                        "✅Удаление сообщений", "✅Замена сообщений", "✅Обычная клавиатура", "✅Кнопки", "✅Оплата", "✅Планирование отправки сообщений", "⏪Назад",
+                        "deleteMsg", "replaceMsg", "UsualyKeyboar", "Buttons", "payment", "shedulMsg", "back1");
             } else if (callBackData.contains("portfolio")) {
                 deleteMessageText(client.getIdClient(), lastMessageIds.get(client.getIdClient()));
                 deleteMessageText(client.getIdClient(), lastMessageIdsPhoto.get(client.getIdClient()));
 
-                messageText(client.getIdClient(), "✅Портфолио:",
-                        "✅Бот-тест","✅VPN бот", "✅ПсихоБот", "✅QrCode бот", "✅Тренажер умножения", "✅Шар судьбы бот", "Назад",
-                        "bot-test","vpnBot", "psychoBot", "qrBot", "multiBot", "magicBall", "back1");
+                messageText(client.getIdClient(), "\uD83D\uDD06Портфолио:",
+                        "✅Бот-тест", "✅VPN бот", "✅ПсихоБот", "✅QrCode бот", "✅Тренажер умножения", "✅Шар судьбы бот", "⏪Назад",
+                        "bot-test", "vpnBot", "psychoBot", "qrBot", "multiBot", "magicBall", "back1");
+            } else if (callBackData.contains("bot-test")) {
+                deleteMessageText(client.getIdClient(), lastMessageIds.get(client.getIdClient()));
+                messageText(client.getIdClient(), "Бот с тестом по психологии и продажей после его проходения - @ExtraSoftSkillsBot");
+
+            } else if (callBackData.contains("vpnBot")) {
+                deleteMessageText(client.getIdClient(), lastMessageIds.get(client.getIdClient()));
+                messageText(client.getIdClient(), "Бот в котором можно купить VPN и получить инструкцию по настройке его на своём устройстве - @TrrustVPNbot");
+
+            } else if (callBackData.contains("psychoBot")) {
+                deleteMessageText(client.getIdClient(), lastMessageIds.get(client.getIdClient()));
+                messageText(client.getIdClient(), "Бот в котором можно получить консультацию психолога, оставить свою историю которой хочеться поделиться, также бот производит автопостиг постов в свой канал - @SmartPsychoBot");
+
+            } else if (callBackData.contains("qrBot")) {
+                deleteMessageText(client.getIdClient(), lastMessageIds.get(client.getIdClient()));
+                messageText(client.getIdClient(), "Бот для быстрого создания из строки или ссылки QrCode - @QrCoadeBot");
+
+            } else if (callBackData.contains("multiBot")) {
+                deleteMessageText(client.getIdClient(), lastMessageIds.get(client.getIdClient()));
+                messageText(client.getIdClient(), "Бот тренажер таблицы умножения - @EasyMultiplicationTableBot");
+
+            } else if (callBackData.contains("magicBall")) {
+                deleteMessageText(client.getIdClient(), lastMessageIds.get(client.getIdClient()));
+                messageText(client.getIdClient(), "Бот магический шар который выдает предсказание на заданный вопрос - @MagicFromBallbot");
+
+            } else if (callBackData.contains("deleteMsg")) {
+                deleteMessageText(client.getIdClient(), lastMessageIds.get(client.getIdClient()));
+
+
+            } else if (callBackData.contains("replaceMsg")) {
+                deleteMessageText(client.getIdClient(), lastMessageIds.get(client.getIdClient()));
+
+
+            } else if (callBackData.contains("UsualyKeyboar")) {
+                deleteMessageText(client.getIdClient(), lastMessageIds.get(client.getIdClient()));
+
+
+            } else if (callBackData.contains("Buttons")) {
+                deleteMessageText(client.getIdClient(), lastMessageIds.get(client.getIdClient()));
+
+
+            } else if (callBackData.contains("payment")) {
+                deleteMessageText(client.getIdClient(), lastMessageIds.get(client.getIdClient()));
+                SendInvoice sendInvoice = new SendInvoice();
+                sendInvoice.setChatId(client.getIdClient());
+                sendInvoice.setTitle("Product Name");
+                sendInvoice.setDescription("Product Description");
+                sendInvoice.setPayload("custom_payload");
+                sendInvoice.setProviderToken("381764678:TEST:80071");
+                sendInvoice.setStartParameter("test");
+                sendInvoice.setCurrency("RUB");
+                sendInvoice.setPrices(Arrays.asList(new LabeledPrice[]{new LabeledPrice("Руб", 99900)}));
+                //sendInvoice.setProviderData("{\"shop_id\": " + SHOP_ID + ", \"shop_article_id\": " + SHOP_ARTICLE_ID + "}");// in cents
+
+                try {
+                    // Send the invoice
+                    bot.execute(sendInvoice);
+                } catch (TelegramApiException e) {
+                    e.printStackTrace();
+                }
+
+            } else if (callBackData.contains("shedulMsg")) {
+                deleteMessageText(client.getIdClient(), lastMessageIds.get(client.getIdClient()));
+
+
             }
         } else if (update.hasMessage() && update.getMessage().hasPhoto()) {
             if (Admin1.idToMessage == message.getChatId() || Admin1.getIdClient() == message.getChatId()) {
@@ -607,9 +654,9 @@ public class WebHookController {
         row5.add(inlineKeyboardButton5);
 
         InlineKeyboardButton inlineKeyboardButton6 = new InlineKeyboardButton();
-        inlineKeyboardButton6.setText(newTextForButtonSix);
+        inlineKeyboardButton6.setText(newTextForButtonSeven);
         inlineKeyboardButton6.setCallbackData(String.valueOf(newTextForCallbackSeven));
-        row5.add(inlineKeyboardButton6);
+        row6.add(inlineKeyboardButton6);
 
 
         keyboard.add(row);
