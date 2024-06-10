@@ -1,8 +1,8 @@
 package com.xakerz.SalerBots.handlers;
 
 public class BotConfig {
-    static private final String BOT_NAME = "@SmartPsychoBot";
-    static private final String BOT_TOKEN = "6877126869:AAGGgGGkiBcHLS8h2EFaFh-S_15JRnlpq-Q";
+    static private final String BOT_NAME = "@xakerz_Bot";
+    static private final String BOT_TOKEN = "5994666145:AAF606nhEp2R5_EBcKgDPQqq2f_Vu_JgtMQ";
 
 
     static private final  long ADMIN_ID = 965233182L;//Марина

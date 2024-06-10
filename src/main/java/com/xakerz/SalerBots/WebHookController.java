@@ -1,5 +1,6 @@
 package com.xakerz.SalerBots;
 
+import SaveSerFiles.MapFileHandler;
 import com.xakerz.SalerBots.handlers.BotConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,12 +24,14 @@ import java.util.*;
 
 @RestController
 public class WebHookController {
-    private static final Map<Long, Client> clients = new HashMap<>();
-    static Map<Long, Integer> lastMessageIds = new HashMap<>();
-    static Map<Long, Integer> lastMessageIdsPhoto = new HashMap<>();
-    static Map<Long, Integer> adminPanelMessageIdsToAdmin = new HashMap<>();
-    static Map<Long, Integer> lastMessageIdsToAdmin = new HashMap<>();
-    static Map<Long, ArrayList<String>> listClientMessages = new HashMap<>();
+    public static Map<Long, Client> clients = new HashMap<>();
+    public static Map<Long, Integer> lastMessageIds = new HashMap<>();
+    public static Map<Long, Integer> lastMessageIdsPhoto = new HashMap<>();
+    public static Map<Long, Integer> adminPanelMessageIdsToAdmin = new HashMap<>();
+    public static Map<Long, Integer> lastMessageIdsMessagePay = new HashMap<>();
+    public static Map<Long, Integer> lastMessageIdsToAdmin = new HashMap<>();
+    public static Map<Long, ArrayList<String>> listClientMessages = new HashMap<>();
+    public static Map<Long, ArrayList<Integer>> listMessagesForDelete = new HashMap<>();
 
     static ClientAdmin Admin1 = new ClientAdmin("Роман", "Роман", BotConfig.getADMIN_ID1(), false);
     private static final String SHOP_ID = "506751";
@@ -72,6 +75,30 @@ public class WebHookController {
                 clients.put(client.getIdClient(), client);
 
             }
+
+
+            if (message.hasText() && client.isNameInfo()) {
+                deleteMessageText(client.getIdClient(), lastMessageIds.get(client.getIdClient()));
+                client.setNameForInfo(message.getText());
+                deleteMessageText(client.getIdClient(), message.getMessageId());
+                messageText(client.getIdClient(), "Ваше имя принято. \nВведите ваш возраст.");
+                client.setAgeInfo(true);
+                client.setNameInfo(false);
+            } else if (message.hasText() && client.isAgeInfo()) {
+                deleteMessageText(client.getIdClient(), lastMessageIds.get(client.getIdClient()));
+                try {
+                    client.setAgeForInfo(Integer.parseInt(message.getText()));
+                    deleteMessageText(client.getIdClient(), message.getMessageId());
+
+                } catch (NumberFormatException e) {
+                    messageText(client.getIdClient(), "Вы ввели не число, введите пожалуйста число.");
+                    return;
+                }
+                messageText(client.getIdClient(), "Ваш возраст записан.\n\n\n вас зовут " + client.getNameForInfo() + " ваш возраст- " + client.getAgeForInfo(), "⏪назад", "functions");
+                client.setAgeInfo(false);
+            }
+
+
             if (client.getIdToMessage() != 0 && update.hasMessage()) {
                 System.out.println(client.getIdToMessage() + " " + clients.get(client.getIdToMessage()).getIdToMessage());
                 messageText(client.idToMessage, client.getName() + ": " + message.getText());
@@ -81,24 +108,6 @@ public class WebHookController {
                 start(client, message);
 
 
-
-            SendInvoice sendInvoice = new SendInvoice();
-            sendInvoice.setChatId(client.getIdClient());
-            sendInvoice.setTitle("Product Name");
-            sendInvoice.setDescription("Product Description");
-            sendInvoice.setPayload("custom_payload");
-            sendInvoice.setProviderToken("381764678:TEST:80071");
-            sendInvoice.setStartParameter("test");
-            sendInvoice.setCurrency("RUB");
-            sendInvoice.setPrices(Arrays.asList(new LabeledPrice[]{new LabeledPrice("Руб", 99900)}));
-            //sendInvoice.setProviderData("{\"shop_id\": " + SHOP_ID + ", \"shop_article_id\": " + SHOP_ARTICLE_ID + "}");// in cents
-
-            try {
-                // Send the invoice
-                bot.execute(sendInvoice);
-            } catch (TelegramApiException e) {
-                e.printStackTrace();
-            }
             } else if (update.hasMessage() && update.getMessage().hasText() && update.getMessage().getText().equals("photo")) {
                 sendPhotoMessage(Long.parseLong(String.valueOf(update.getMessage().getChatId())), "https://disk.yandex.ru/i/eNx-09JOMPXYyQ");
 
@@ -146,11 +155,14 @@ public class WebHookController {
                 deleteMessageText(client.getIdClient(), lastMessageIdsPhoto.get(client.getIdClient()));
                 client.setSaveMessages(true);
                 clients.put(client.getIdClient(), client);
-                messageText(client.getIdClient(), "Ваша заявка отправлена, вам скоро напишут\uD83E\uDEF6", "Назад", "back1");
+                messageText(client.getIdClient(), "Ваша заявка отправлена, вам скоро напишут\uD83E\uDEF6", "⏪назад", "back1");
 
                 messageTextStory(BotConfig.getADMIN_ID1(), "Заявка от  " + client.getNickName() + "\n" + client.getName() + "\n" + "\uD83E\uDEF6Новая консультация\uD83E\uDEF6\n\n" + client.getInfo(), "Закрыть консультацию", "Начать консультацию", "cancelCons " + client.getIdClient(), "doOrder" + client.getIdClient());
             } else if (callBackData.equals("back1")) {
                 deleteMessageText(client.getIdClient(), lastMessageIds.get(client.getIdClient()));
+                if (!lastMessageIdsMessagePay.isEmpty() && lastMessageIdsMessagePay.get(client.getIdClient()) != null) {
+                    deleteMessageText(client.getIdClient(), lastMessageIdsMessagePay.get(client.getIdClient()));
+                }
 
                 start2(client, message);
             } else if (callBackData.contains("doOrder") && (client.getIdClient() == BotConfig.getADMIN_ID() || client.getIdClient() == BotConfig.getADMIN_ID1())) {
@@ -201,8 +213,8 @@ public class WebHookController {
                 long idclient = Long.parseLong(callBackData.replaceAll("cancelCons", "").trim());
                 Client client1 = clients.get(idclient);
                 long adminId = client.getIdClient();
-
-                messageText(client1.getIdClient(), "Диалог с вами закрыт, но вы можете отправлять сообщения разработчику, чтобы он их увидел подайте заявку еще раз, спасибо", "Назад", "back1");
+                deleteMessageText(client1.getIdClient(), lastMessageIds.get(client1.getIdClient()));
+                messageText(client1.getIdClient(), "Диалог с вами закрыт, но вы можете отправлять сообщения разработчику, чтобы он их увидел подайте заявку еще раз, спасибо", "⏪назад", "back1");
                 client1.setSaveMessages(true);
                 clients.put(client1.getIdClient(), client1);
 
@@ -221,16 +233,155 @@ public class WebHookController {
                 deleteMessageText(client.getIdClient(), lastMessageIds.get(client.getIdClient()));
                 deleteMessageText(client.getIdClient(), lastMessageIdsPhoto.get(client.getIdClient()));
 
-                messageText(client.getIdClient(), "✅Портфолио:",
-                        "✅Бот-тест","✅VPN бот", "✅ПсихоБот", "✅QrCode бот", "✅Тренажер умножения", "✅Шар судьбы бот", "Назад",
-                        "bot-test","vpnBot", "psychoBot", "qrBot", "multiBot", "magicBall", "back1");
+                messageText(client.getIdClient(), "\uD83E\uDD16Базовые функции:",
+                        "✅Оплата", "✅Сбор информации", "✅Удаление сообщений", "✅Изменение сообщений", "✅Отправка сообщений с задержкой", "✅Общение с клиентами", "⏪назад",
+                        "pay", "collectInfo", "deleteMessage", "changeMessage", "schedulerMessage", "chatWithClient", "back1");
             } else if (callBackData.contains("portfolio")) {
                 deleteMessageText(client.getIdClient(), lastMessageIds.get(client.getIdClient()));
                 deleteMessageText(client.getIdClient(), lastMessageIdsPhoto.get(client.getIdClient()));
 
-                messageText(client.getIdClient(), "✅Портфолио:",
-                        "✅Бот-тест","✅VPN бот", "✅ПсихоБот", "✅QrCode бот", "✅Тренажер умножения", "✅Шар судьбы бот", "Назад",
-                        "bot-test","vpnBot", "psychoBot", "qrBot", "multiBot", "magicBall", "back1");
+                messageText(client.getIdClient(), "\uD83E\uDD16Портфолио:",
+                        "✅Бот-тест", "✅VPN бот", "✅ПсихоБот", "✅QrCode бот", "✅Тренажер умножения", "✅Шар судьбы бот", "⏪назад",
+                        "bot-test", "vpnBot", "psychoBot", "qrBot", "multiBot", "magicBall", "back1");
+            } else if (callBackData.contains("pay")) {
+                deleteMessageText(client.getIdClient(), lastMessageIds.get(client.getIdClient()));
+
+                SendInvoice sendInvoice = new SendInvoice();
+                sendInvoice.setChatId(client.getIdClient());
+                sendInvoice.setTitle("Тестовый платеж");
+                sendInvoice.setDescription("Ваш товар");
+                sendInvoice.setPayload("custom_payload");
+                sendInvoice.setProviderToken("381764678:TEST:80071");
+                sendInvoice.setStartParameter("test");
+                sendInvoice.setCurrency("RUB");
+                sendInvoice.setPrices(Arrays.asList(new LabeledPrice[]{new LabeledPrice("Руб", 99900)}));
+
+                //sendInvoice.setProviderData("{\"shop_id\": " + SHOP_ID + ", \"shop_article_id\": " + SHOP_ARTICLE_ID + "}");// in cents
+
+                try {
+                    Message sentMessage = bot.execute(sendInvoice);
+                    lastMessageIdsMessagePay.put(client.getIdClient(), sentMessage.getMessageId());
+
+                } catch (TelegramApiException e) {
+                    e.printStackTrace();
+                }
+                messageText(client.getIdClient(), "Данные карты для тестового платежа:\n Номер карты: 1111 1111 1111 1026\nСрок действия: 12/22\nCVV код: 000 \n\n\nДля возврата в меню функций нажмите \"назад\"", "⏪Назад", "functions");
+
+            } else if (callBackData.contains("collectInfo")) {
+                deleteMessageText(client.getIdClient(), lastMessageIds.get(client.getIdClient()));
+                messageText(client.getIdClient(), "Введите ваше имя:");
+                client.setNameInfo(true);
+
+
+            } else if (callBackData.contains("deleteMessage")) {
+                deleteMessageText(client.getIdClient(), lastMessageIds.get(client.getIdClient()));
+                messageText(client.getIdClient(), "Сообщение для удаления, нажмите на кнопку \"Удалить\"", "Удалить", "⏪Назад", "delete", "functions");
+
+
+            } else if (callBackData.contains("delete")) {
+                deleteMessageText(client.getIdClient(), lastMessageIds.get(client.getIdClient()));
+
+                messageText(client.getIdClient(), "Сообщение удалено", "⏪Назад", "functions");
+
+            } else if (callBackData.contains("changeMessage")) {
+                deleteMessageText(client.getIdClient(), lastMessageIds.get(client.getIdClient()));
+                messageText(client.getIdClient(), "Сообщение для изменения, нажмите на кнопку \"Изменить\"", "Изменить", "⏪Назад", "change", "functions");
+
+
+            } else if (callBackData.contains("change")) {
+
+
+                editeMessage(client.getIdClient(), client.getMessageId(), "Сообщение изменено", "⏪Назад", "functions");
+
+            } else if (callBackData.contains("schedulerMessage")) {
+                deleteMessageText(client.getIdClient(), lastMessageIds.get(client.getIdClient()));
+                Thread thread = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        sendTypingStatus(client.getIdClient());
+                        try {
+                            Thread.sleep(2000);
+                            messageTextSchedule(client.getIdClient(), "Таким образом можно", client);
+                            Thread.sleep(2000);
+                            messageTextSchedule(client.getIdClient(), "посылать сообщения с задержкой", client);
+                            Thread.sleep(2000);
+                            messageTextSchedule(client.getIdClient(), "или в запланированное время", client);
+                            Thread.sleep(2000);
+                            messageTextSchedule(client.getIdClient(), "Это очень удобно", client);
+                            Thread.sleep(2000);
+                            messageTextSchedule(client.getIdClient(), "Создаётся иллюзия ", client);
+                            Thread.sleep(2000);
+                            messageTextSchedule(client.getIdClient(), "Общения с реальным человеком", client);
+                            Thread.sleep(2000);
+                            messageTextSchedule(client.getIdClient(), "А потом можно все удалить)", client);
+                            Thread.sleep(2000);
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        }
+                        ArrayList<Integer> temp = listMessagesForDelete.get(client.getIdClient());
+
+                        for (Integer messageId : temp.reversed()) {
+                            for (int i = 3; i > 0; i--) {
+                                messageText(client.getIdClient(), String.valueOf(i));
+
+                                try {
+                                    Thread.sleep(1000);
+                                } catch (InterruptedException e) {
+                                    throw new RuntimeException(e);
+                                }
+                                if (!lastMessageIds.isEmpty()) {
+                                    deleteMessageText(client.getIdClient(), lastMessageIds.get(client.getIdClient()));
+                                } else {
+                                    deleteMessageText(client.getIdClient(), lastMessageIds.get(client.getIdClient()));
+                                    break;
+                                }
+                            }
+                            deleteMessageText(client.getIdClient(), messageId);
+
+                        }
+                        listMessagesForDelete.get(client.getIdClient()).removeAll(client.listMessagesForDelete);
+                        messageText(client.getIdClient(), "Для возврата в меню функций нажмите \"Назад\"", "⏪Назад", "functions");
+
+                    }
+                });
+                thread.start();
+
+
+            } else if (callBackData.contains("chatWithClient")) {
+                deleteMessageText(client.getIdClient(), lastMessageIds.get(client.getIdClient()));
+
+                messageText(client.getIdClient(), "Можно реализовать чат администратора с клиентом, либо сделать подобие телефонной АТС с возможность распределения входящих сообщений среди ваших сотрудников.", "⏪Назад", "functions");
+
+            } else if (callBackData.contains("bot-test")) {
+                deleteMessageText(client.getIdClient(), lastMessageIds.get(client.getIdClient()));
+                messageTextAndPhoto(client.getIdClient(), "https://disk.yandex.ru/i/OApoXvhEe4-H6g", "@ExtraSoftSkillsBot - данный бот проводит опрос клиента, на основании его ответов выдаёт результат. Воронка продаж с возможностью консультирования клиентов прямо в боте.", "⏪Назад", "portfolio");
+
+
+            } else if (callBackData.contains("vpnBot")) {
+                deleteMessageText(client.getIdClient(), lastMessageIds.get(client.getIdClient()));
+                messageTextAndPhoto(client.getIdClient(), "https://disk.yandex.ru/i/QSYHN_R6TFqykQ", "@TrrustVPNbot - данный бот продает ключи VPN.", "⏪Назад", "portfolio");
+
+
+            } else if (callBackData.contains("psychoBot")) {
+                deleteMessageText(client.getIdClient(), lastMessageIds.get(client.getIdClient()));
+                messageTextAndPhoto(client.getIdClient(), "https://disk.yandex.ru/i/niK8h1Q-XiaJ1w", "@SmartPsychoBot - данный бот позволяет получить консультацию психолога прямо в боте, также оставить анонимную историю для публикации в сообществе для получения советов в жизненной ситуации изложенной в истории. Также бот публикует посты в сообществе по расписанию.", "⏪Назад", "portfolio");
+
+
+            } else if (callBackData.contains("qrBot")) {
+                deleteMessageText(client.getIdClient(), lastMessageIds.get(client.getIdClient()));
+                messageTextAndPhoto(client.getIdClient(), "https://disk.yandex.ru/i/tWy2-0Ag4Jelmg", "@QrCoadeBot - данный бот создаёт QrCode из текста присланного пользователем.", "⏪Назад", "portfolio");
+
+
+            } else if (callBackData.contains("multiBot")) {
+                deleteMessageText(client.getIdClient(), lastMessageIds.get(client.getIdClient()));
+                messageTextAndPhoto(client.getIdClient(), "https://disk.yandex.ru/i/I_IFMkq2lTjKBg", "@EasyMultiplicationTableBot - данный бот помогает выучить таблицу умножения.", "⏪Назад", "portfolio");
+
+
+            } else if (callBackData.contains("magicBall")) {
+                deleteMessageText(client.getIdClient(), lastMessageIds.get(client.getIdClient()));
+                messageTextAndPhoto(client.getIdClient(), "https://disk.yandex.ru/i/YG1xdrTbkTTFdA", "@MagicFromBallbot - данный бот на основании вопроса пользователя даёт предсказание.", "⏪Назад", "portfolio");
+
+
             }
         } else if (update.hasMessage() && update.getMessage().hasPhoto()) {
             if (Admin1.idToMessage == message.getChatId() || Admin1.getIdClient() == message.getChatId()) {
@@ -254,6 +405,7 @@ public class WebHookController {
             answerPreCheckoutQuery.setOk(true);
 
             try {
+
                 // Answer the pre-checkout query
                 bot.execute(answerPreCheckoutQuery);
             } catch (TelegramApiException e) {
@@ -276,6 +428,7 @@ public class WebHookController {
 
             }
         }
+        MapFileHandler.saveMaps();
     }
 
     public void start(Client client, Message message) {
@@ -316,7 +469,7 @@ public class WebHookController {
     }
 
     public void start2(Client client, Message message) {
-        sendPhoto(client, "Наш бот приветствует вас\uD83D\uDC4B", "https://disk.yandex.ru/i/Oyl4xNaS72_PiA");
+        sendPhoto(client, "С возвращением\uD83D\uDC4B", "https://disk.yandex.ru/i/Oyl4xNaS72_PiA");
 
         String hi = "Здесь вы сможете ознакомиться с базовым функционалом который будет в вашем боте, функции нужные вам мы добавим по вашему желанию.";
         String[] arrayStr = hi.split(" ");
@@ -456,6 +609,76 @@ public class WebHookController {
         sendMessage.setReplyMarkup(getInlineKeyboard(newTextForButtonOne, newTextForCallbackOne));
         try {
             Message sentMessage = bot.execute(sendMessage);
+            lastMessageIds.put(chatId, sentMessage.getMessageId());
+        } catch (TelegramApiException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private void messageTextAndPhoto(Long chatId, String pathToPhoto, String newTextForMessage, String newTextForButtonOne, String newTextForCallbackOne) {
+
+        SendPhoto sendMessage = new SendPhoto();
+        sendMessage.setChatId(chatId);
+        InputFile inputFile = new InputFile(pathToPhoto);
+        sendMessage.setPhoto(inputFile);
+        sendMessage.setCaption(newTextForMessage);
+        sendMessage.setParseMode("HTML");
+        sendMessage.setReplyMarkup(getInlineKeyboard(newTextForButtonOne, newTextForCallbackOne));
+        try {
+            Message sentMessage = bot.execute(sendMessage);
+            lastMessageIds.put(chatId, sentMessage.getMessageId());
+        } catch (TelegramApiException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+
+    private void messageText(Long chatId, String newTextForMessage, String newTextForButtonOne, String newTextForButtonTwo, String newTextForCallbackOne, String newTextForCallbackTwo) {
+
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setChatId(chatId);
+
+        sendMessage.setText(newTextForMessage);
+        sendMessage.setParseMode("HTML");
+        sendMessage.setReplyMarkup(getInlineKeyboard(newTextForButtonOne, newTextForButtonTwo, newTextForCallbackOne, newTextForCallbackTwo));
+        try {
+            Message sentMessage = bot.execute(sendMessage);
+            lastMessageIds.put(chatId, sentMessage.getMessageId());
+        } catch (TelegramApiException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private void messageTextSchedule(Long chatId, String newTextForMessage, Client client) {
+
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setChatId(chatId);
+
+        sendMessage.setText(newTextForMessage);
+        sendMessage.setParseMode("HTML");
+
+        try {
+            Message sentMessage = bot.execute(sendMessage);
+            lastMessageIds.put(chatId, sentMessage.getMessageId());
+
+
+            client.listMessagesForDelete.add(sentMessage.getMessageId());
+            listMessagesForDelete.put(client.getIdClient(), client.listMessagesForDelete);
+        } catch (TelegramApiException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private void editeMessage(Long chatId, int messageId, String newTextForMessage, String newTextForButtonOne, String newTextForCallbackOne) {
+
+        EditMessageText sendMessage = new EditMessageText();
+        sendMessage.setChatId(chatId);
+        sendMessage.setMessageId(messageId);
+        sendMessage.setText(newTextForMessage);
+        sendMessage.setParseMode("HTML");
+        sendMessage.setReplyMarkup(getInlineKeyboard(newTextForButtonOne, newTextForCallbackOne));
+        try {
+            EditMessageText sentMessage = (EditMessageText) bot.execute(sendMessage);
             lastMessageIds.put(chatId, sentMessage.getMessageId());
         } catch (TelegramApiException e) {
             System.out.println(e.getMessage());
@@ -607,9 +830,9 @@ public class WebHookController {
         row5.add(inlineKeyboardButton5);
 
         InlineKeyboardButton inlineKeyboardButton6 = new InlineKeyboardButton();
-        inlineKeyboardButton6.setText(newTextForButtonSix);
+        inlineKeyboardButton6.setText(newTextForButtonSeven);
         inlineKeyboardButton6.setCallbackData(String.valueOf(newTextForCallbackSeven));
-        row5.add(inlineKeyboardButton6);
+        row6.add(inlineKeyboardButton6);
 
 
         keyboard.add(row);
@@ -837,6 +1060,7 @@ public class WebHookController {
         markup.setKeyboard(keyboard);
         return markup;
     }
+
 
     private void messageText(Long chatId, String newTextForMessage) {
 

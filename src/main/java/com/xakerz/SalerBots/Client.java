@@ -16,9 +16,47 @@ public class Client implements Serializable {
     private boolean booleanSituation;
     long idToMessage;
    private boolean booleanInfo;
+   private boolean nameInfo;
+   private boolean ageInfo;
    private String info;
     private boolean saveMessages;
+    private String nameForInfo;
+
+    private int ageForInfo;
     ArrayList<String> clientMessages = new ArrayList<>();
+    ArrayList<Integer> listMessagesForDelete = new ArrayList<>();
+
+    public String getNameForInfo() {
+        return nameForInfo;
+    }
+
+    public void setNameForInfo(String nameForInfo) {
+        this.nameForInfo = nameForInfo;
+    }
+
+    public int getAgeForInfo() {
+        return ageForInfo;
+    }
+
+    public void setAgeForInfo(int ageForInfo) {
+        this.ageForInfo = ageForInfo;
+    }
+
+    public boolean isNameInfo() {
+        return nameInfo;
+    }
+
+    public void setNameInfo(boolean nameInfo) {
+        this.nameInfo = nameInfo;
+    }
+
+    public boolean isAgeInfo() {
+        return ageInfo;
+    }
+
+    public void setAgeInfo(boolean ageInfo) {
+        this.ageInfo = ageInfo;
+    }
 
     public boolean isSaveMessages() {
         return saveMessages;
@@ -85,6 +123,10 @@ public class Client implements Serializable {
         this.booleanInfo = false;
         this.info = "";
         this.saveMessages = false;
+        this.nameInfo = false;
+        this.ageInfo = false;
+        this.ageForInfo = 0;
+        this.nameForInfo = "Empty";
     }
 
 
