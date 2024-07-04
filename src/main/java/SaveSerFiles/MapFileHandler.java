@@ -22,6 +22,7 @@ static String pathToFile = "C:\\Users\\rpant\\IdeaProjects\\SalerBots\\maps.ser"
             out.writeObject(adminPanelMessageIdsToAdmin);
             out.writeObject(lastMessageIdsPhoto);
             out.writeObject(lastMessageIdsMessagePay);
+            out.writeObject(listMessagesConsult);
             out.writeObject(clients);
             out.writeObject(listClientMessages);
             out.close();
@@ -40,6 +41,7 @@ static String pathToFile = "C:\\Users\\rpant\\IdeaProjects\\SalerBots\\maps.ser"
             adminPanelMessageIdsToAdmin = (Map<Long, Integer>) in.readObject();
             lastMessageIdsPhoto = (Map<Long, Integer>) in.readObject();
             lastMessageIdsMessagePay = (Map<Long, Integer>) in.readObject();
+            listMessagesConsult = (Map<Long, Integer>) in.readObject();
             clients = (Map<Long, Client>) in.readObject();
             listClientMessages = (Map<Long, ArrayList<String>>) in.readObject();
             in.close();

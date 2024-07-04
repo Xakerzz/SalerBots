@@ -32,6 +32,7 @@ public class WebHookController {
     public static Map<Long, Integer> lastMessageIdsToAdmin = new HashMap<>();
     public static Map<Long, ArrayList<String>> listClientMessages = new HashMap<>();
     public static Map<Long, ArrayList<Integer>> listMessagesForDelete = new HashMap<>();
+    public static Map<Long, Integer> listMessagesConsult = new HashMap<>();
 
     static ClientAdmin Admin1 = new ClientAdmin("Роман", "Роман", BotConfig.getADMIN_ID1(), false);
     private static final String SHOP_ID = "506751";
@@ -155,7 +156,7 @@ public class WebHookController {
                 deleteMessageText(client.getIdClient(), lastMessageIdsPhoto.get(client.getIdClient()));
                 client.setSaveMessages(true);
                 clients.put(client.getIdClient(), client);
-                messageText(client.getIdClient(), "Ваша заявка отправлена, вам скоро напишут\uD83E\uDEF6", "⏪назад", "back1");
+                messageTextCosult(client.getIdClient(), "Ваша заявка отправлена, вам скоро напишут\uD83E\uDEF6", "⏪назад", "back1");
 
                 messageTextStory(BotConfig.getADMIN_ID1(), "Заявка от  " + client.getNickName() + "\n" + client.getName() + "\n" + "\uD83E\uDEF6Новая консультация\uD83E\uDEF6\n\n" + client.getInfo(), "Закрыть консультацию", "Начать консультацию", "cancelCons " + client.getIdClient(), "doOrder" + client.getIdClient());
             } else if (callBackData.equals("back1")) {
@@ -163,6 +164,7 @@ public class WebHookController {
                 if (!lastMessageIdsMessagePay.isEmpty() && lastMessageIdsMessagePay.get(client.getIdClient()) != null) {
                     deleteMessageText(client.getIdClient(), lastMessageIdsMessagePay.get(client.getIdClient()));
                 }
+                deleteMessageText(client.getIdClient(), listMessagesConsult.get(client.getIdClient()));
 
                 start2(client, message);
             } else if (callBackData.contains("doOrder") && (client.getIdClient() == BotConfig.getADMIN_ID() || client.getIdClient() == BotConfig.getADMIN_ID1())) {
@@ -213,8 +215,11 @@ public class WebHookController {
                 long idclient = Long.parseLong(callBackData.replaceAll("cancelCons", "").trim());
                 Client client1 = clients.get(idclient);
                 long adminId = client.getIdClient();
-                deleteMessageText(client.getIdClient(), lastMessageIds.get(client.getIdClient()));
-                messageText(client1.getIdClient(), "Диалог с вами закрыт, но вы можете отправлять сообщения разработчику, чтобы он их увидел подайте заявку еще раз, спасибо", "⏪назад", "back1");
+                deleteMessageText(client1.getIdClient(), lastMessageIdsPhoto.get(client1.getIdClient()));
+                deleteMessageText(client1.getIdClient(), lastMessageIds.get(client1.getIdClient()));
+
+                deleteMessageText(client1.getIdClient(), listMessagesConsult.get(client1.getIdClient()));
+                messageTextCosult(client1.getIdClient(), "Диалог с вами закрыт, но вы можете отправлять сообщения разработчику, чтобы он их увидел подайте заявку еще раз, спасибо", "⏪назад", "back1");
                 client1.setSaveMessages(true);
                 clients.put(client1.getIdClient(), client1);
 
@@ -236,6 +241,12 @@ public class WebHookController {
                 messageText(client.getIdClient(), "\uD83E\uDD16Базовые функции:",
                         "✅Оплата", "✅Сбор информации", "✅Удаление сообщений", "✅Изменение сообщений", "✅Отправка сообщений с задержкой", "✅Общение с клиентами", "⏪назад",
                         "pay", "collectInfo", "deleteMessage", "changeMessage", "schedulerMessage", "chatWithClient", "back1");
+            } else if (callBackData.contains("sortOfBots")) {
+                deleteMessageText(client.getIdClient(), lastMessageIds.get(client.getIdClient()));
+                deleteMessageText(client.getIdClient(), lastMessageIdsPhoto.get(client.getIdClient()));
+
+                messageText(client.getIdClient(), "Виды ботов:\n\n + узнать подробнее о каждом по кнопке ниже\uD83D\uDC4C", "Бот-визитка", "Бот-консультант (+оплата)", "Другие интеграции","Назад", "botVisitka", "botPay","botOther", "back1");
+
             } else if (callBackData.contains("portfolio")) {
                 deleteMessageText(client.getIdClient(), lastMessageIds.get(client.getIdClient()));
                 deleteMessageText(client.getIdClient(), lastMessageIdsPhoto.get(client.getIdClient()));
@@ -436,8 +447,8 @@ public class WebHookController {
         deleteMessageText(client.getIdClient(), message.getMessageId());
         String hi = "Здесь вы сможете ознакомиться с базовым функционалом который будет в вашем боте, функции нужные вам мы добавим по вашему желанию.";
         String[] arrayStr = hi.split(" ");
-        messageText(client.getIdClient(), arrayStr[0], "Заказать бота", "Возможности бота", "Портфолио",
-                "doOrder", "functions", "portfolio");
+        messageText(client.getIdClient(), arrayStr[0], "Заказать бота", "Возможности бота","Виды чат-ботов", "Портфолио",
+                "doOrder", "functions", "sortOfBots", "portfolio");
 
 
         Thread thread = new Thread(new Runnable() {
@@ -459,8 +470,8 @@ public class WebHookController {
                     }
 
                     editeMessage(client.getIdClient(), lastMessageIds.get(client.getIdClient()), temp.toString(),
-                            "Заказать бота", "Возможности бота", "Портфолио",
-                            "doOrder", "functions", "portfolio");
+                            "Заказать бота", "Возможности бота","Виды чат-ботов", "Портфолио",
+                            "doOrder", "functions",  "sortOfBots","portfolio");
 
                 }
             }
@@ -473,8 +484,8 @@ public class WebHookController {
 
         String hi = "Здесь вы сможете ознакомиться с базовым функционалом который будет в вашем боте, функции нужные вам мы добавим по вашему желанию.";
         String[] arrayStr = hi.split(" ");
-        messageText(client.getIdClient(), arrayStr[0], "Заказать бота", "Возможности бота", "Портфолио",
-                "doOrder", "functions", "portfolio");
+        messageText(client.getIdClient(), arrayStr[0], "Заказать бота", "Возможности бота","Виды чат-ботов", "Портфолио",
+                "doOrder", "functions","sortOfBots", "portfolio");
 
 
         Thread thread = new Thread(new Runnable() {
@@ -496,8 +507,8 @@ public class WebHookController {
                     }
 
                     editeMessage(client.getIdClient(), lastMessageIds.get(client.getIdClient()), temp.toString(),
-                            "Заказать бота", "Возможности бота", "Портфолио",
-                            "doOrder", "functions", "portfolio");
+                            "Заказать бота", "Возможности бота", "Возможности бота","Портфолио",
+                            "doOrder", "functions","sortOfBots", "portfolio");
 
                 }
             }
@@ -610,6 +621,22 @@ public class WebHookController {
         try {
             Message sentMessage = bot.execute(sendMessage);
             lastMessageIds.put(chatId, sentMessage.getMessageId());
+        } catch (TelegramApiException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private void messageTextCosult(Long chatId, String newTextForMessage, String newTextForButtonOne, String newTextForCallbackOne) {
+
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setChatId(chatId);
+
+        sendMessage.setText(newTextForMessage);
+        sendMessage.setParseMode("HTML");
+        sendMessage.setReplyMarkup(getInlineKeyboard(newTextForButtonOne, newTextForCallbackOne));
+        try {
+            Message sentMessage = bot.execute(sendMessage);
+            listMessagesConsult.put(chatId, sentMessage.getMessageId());
         } catch (TelegramApiException e) {
             System.out.println(e.getMessage());
         }
@@ -753,6 +780,23 @@ public class WebHookController {
         }
     }
 
+    private void editeMessage(Long chatId, int messageId, String newTextForMessage, String newTextForButtonOne, String newTextForButtonTwo, String newTextForButtonThree, String newTextForButtonFour,
+                              String newTextForCallbackOne, String newTextForCallbackTwo, String newTextForCallbackThree , String newTextForCallbackFour) {
+
+        EditMessageText message = new EditMessageText();
+        message.setChatId(chatId);
+        message.setText(newTextForMessage);
+        message.setMessageId(messageId);
+        message.setReplyMarkup(getInlineKeyboard(newTextForButtonOne, newTextForButtonTwo, newTextForButtonThree, newTextForButtonFour,
+                newTextForCallbackOne, newTextForCallbackTwo, newTextForCallbackThree, newTextForCallbackFour));
+        try {
+            Message sentMessage = (Message) bot.execute(message);
+            lastMessageIds.put(chatId, sentMessage.getMessageId());
+        } catch (TelegramApiException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
     private void messageText(Long chatId, String newTextForMessage, String newTextForButtonOne, String newTextForButtonTwo, String newTextForButtonThree,
                              String newTextForCallbackOne, String newTextForCallbackTwo, String newTextForCallbackThree) {
 
@@ -762,6 +806,23 @@ public class WebHookController {
 
         message.setReplyMarkup(getInlineKeyboard(newTextForButtonOne, newTextForButtonTwo, newTextForButtonThree,
                 newTextForCallbackOne, newTextForCallbackTwo, newTextForCallbackThree));
+        try {
+            Message sentMessage = bot.execute(message);
+            lastMessageIds.put(chatId, sentMessage.getMessageId());
+        } catch (TelegramApiException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private void messageText(Long chatId, String newTextForMessage, String newTextForButtonOne, String newTextForButtonTwo, String newTextForButtonThree, String newTextForButtonFour,
+                             String newTextForCallbackOne, String newTextForCallbackTwo, String newTextForCallbackThree, String newTextForCallbackFour) {
+
+        SendMessage message = new SendMessage();
+        message.setChatId(chatId);
+        message.setText(newTextForMessage);
+
+        message.setReplyMarkup(getInlineKeyboard(newTextForButtonOne, newTextForButtonTwo, newTextForButtonThree, newTextForButtonFour,
+                newTextForCallbackOne, newTextForCallbackTwo, newTextForCallbackThree, newTextForCallbackFour));
         try {
             Message sentMessage = bot.execute(message);
             lastMessageIds.put(chatId, sentMessage.getMessageId());
@@ -970,6 +1031,7 @@ public class WebHookController {
         List<InlineKeyboardButton> row1 = new ArrayList<>();
 
 
+
         InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton();
         inlineKeyboardButton.setText(newTextForButtonOne);
         inlineKeyboardButton.setCallbackData(String.valueOf(newTextForCallbackOne));
@@ -986,8 +1048,49 @@ public class WebHookController {
         row1.add(inlineKeyboardButton2);
 
 
+
+
         keyboard.add(row);
         keyboard.add(row1);
+
+
+        markup.setKeyboard(keyboard);
+        return markup;
+    }
+
+    private InlineKeyboardMarkup getInlineKeyboard(String newTextForButtonOne, String newTextForButtonTwo, String newTextForButtonThree, String newTextForButtonFour,
+                                                   String newTextForCallbackOne, String newTextForCallbackTwo, String newTextForCallbackThree, String newTextForCallbackFour) {
+        InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> keyboard = new ArrayList<>();
+        List<InlineKeyboardButton> row = new ArrayList<>();
+        List<InlineKeyboardButton> row1 = new ArrayList<>();
+        List<InlineKeyboardButton> row2 = new ArrayList<>();
+
+
+        InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton();
+        inlineKeyboardButton.setText(newTextForButtonOne);
+        inlineKeyboardButton.setCallbackData(String.valueOf(newTextForCallbackOne));
+        row.add(inlineKeyboardButton);
+
+        InlineKeyboardButton inlineKeyboardButton1 = new InlineKeyboardButton();
+        inlineKeyboardButton1.setText(newTextForButtonTwo);
+        inlineKeyboardButton1.setCallbackData(String.valueOf(newTextForCallbackTwo));
+        row.add(inlineKeyboardButton1);
+
+        InlineKeyboardButton inlineKeyboardButton2 = new InlineKeyboardButton();
+        inlineKeyboardButton2.setText(newTextForButtonThree);
+        inlineKeyboardButton2.setCallbackData(String.valueOf(newTextForCallbackThree));
+        row1.add(inlineKeyboardButton2);
+
+        InlineKeyboardButton inlineKeyboardButton3 = new InlineKeyboardButton();
+        inlineKeyboardButton3.setText(newTextForButtonFour);
+        inlineKeyboardButton3.setCallbackData(String.valueOf(newTextForCallbackFour));
+        row2.add(inlineKeyboardButton3);
+
+
+        keyboard.add(row);
+        keyboard.add(row1);
+        keyboard.add(row2);
 
 
         markup.setKeyboard(keyboard);
@@ -1071,8 +1174,8 @@ public class WebHookController {
         message.setText(newTextForMessage);
 
         try {
-            Message sentMessage = bot.execute(message);
-            lastMessageIds.put(chatId, sentMessage.getMessageId());
+           bot.execute(message);
+
         } catch (TelegramApiException e) {
             System.out.println(e.getMessage());
         }
