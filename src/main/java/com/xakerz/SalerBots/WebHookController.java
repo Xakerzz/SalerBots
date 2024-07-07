@@ -241,13 +241,25 @@ public class WebHookController {
                 messageText(client.getIdClient(), "\uD83E\uDD16Базовые функции:",
                         "✅Оплата", "✅Сбор информации", "✅Удаление сообщений", "✅Изменение сообщений", "✅Отправка сообщений с задержкой", "✅Общение с клиентами", "⏪назад",
                         "pay", "collectInfo", "deleteMessage", "changeMessage", "schedulerMessage", "chatWithClient", "back1");
-            } else if (callBackData.contains("sortOfBots")) {
+            }  else if (callBackData.contains("sortOfBots")) {
                 deleteMessageText(client.getIdClient(), lastMessageIds.get(client.getIdClient()));
                 deleteMessageText(client.getIdClient(), lastMessageIdsPhoto.get(client.getIdClient()));
 
-                messageText(client.getIdClient(), "Виды ботов:\n\n + узнать подробнее о каждом по кнопке ниже\uD83D\uDC4C", "Бот-визитка", "Бот-консультант (+оплата)", "Другие интеграции","Назад", "botVisitka", "botPay","botOther", "back1");
+                messageText(client.getIdClient(), "Виды ботов:\n\nузнать подробнее о каждом по кнопке ниже\uD83D\uDC4C", "Бот-визитка", "Бот-консультант (+оплата)", "Другие интеграции","Назад", "botVisitka", "botPay","botOther", "back1");
 
-            } else if (callBackData.contains("portfolio")) {
+            } else if (callBackData.contains("botVisitka")) {
+                deleteMessageText(client.getIdClient(), lastMessageIds.get(client.getIdClient()));
+
+                messageText(client.getIdClient(), "Бот-визитка рассажет о вашем бизнесе или мероприятии, ответит на частые вопросы ваших клиентов, например о графике работы, вашем адресе, также предоставит фото, видео, аудио контент который расскажет пользователю, о вашем деле.", "⏪назад", "back1");
+            } else if (callBackData.contains("botPay")) {
+                deleteMessageText(client.getIdClient(), lastMessageIds.get(client.getIdClient()));
+
+                messageText(client.getIdClient(), "Бот-консультант ответит пользователю сам на популярный вопрос или соеденит его с менеджером для последующей консультации. После консультации можно запросить у клиента оплату за ваши товары или услуги. Сценарии работы бота разрабатываются индивидуально под ваши задачи.", "⏪назад", "back1");
+            } else if (callBackData.contains("botOther")) {
+                deleteMessageText(client.getIdClient(), lastMessageIds.get(client.getIdClient()));
+
+                messageText(client.getIdClient(), "Другие интеграции - это более сложные по структуре боты, требующие больше времени на разработку, так как интегрируются стороннее программное обеспечение (сайт, сервер, CRM и др.)", "⏪назад", "back1");
+            }else if (callBackData.contains("portfolio")) {
                 deleteMessageText(client.getIdClient(), lastMessageIds.get(client.getIdClient()));
                 deleteMessageText(client.getIdClient(), lastMessageIdsPhoto.get(client.getIdClient()));
 
@@ -507,7 +519,7 @@ public class WebHookController {
                     }
 
                     editeMessage(client.getIdClient(), lastMessageIds.get(client.getIdClient()), temp.toString(),
-                            "Заказать бота", "Возможности бота", "Возможности бота","Портфолио",
+                            "Заказать бота", "Возможности бота", "Виды чат-ботов","Портфолио",
                             "doOrder", "functions","sortOfBots", "portfolio");
 
                 }
