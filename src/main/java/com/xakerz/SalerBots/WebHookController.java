@@ -164,7 +164,9 @@ public class WebHookController {
                 if (!lastMessageIdsMessagePay.isEmpty() && lastMessageIdsMessagePay.get(client.getIdClient()) != null) {
                     deleteMessageText(client.getIdClient(), lastMessageIdsMessagePay.get(client.getIdClient()));
                 }
-                deleteMessageText(client.getIdClient(), listMessagesConsult.get(client.getIdClient()));
+                if (listMessagesConsult.get(client.getIdClient()) != null) {
+                    deleteMessageText(client.getIdClient(), listMessagesConsult.get(client.getIdClient()));
+                }
 
                 start2(client, message);
             } else if (callBackData.contains("doOrder") && (client.getIdClient() == BotConfig.getADMIN_ID() || client.getIdClient() == BotConfig.getADMIN_ID1())) {

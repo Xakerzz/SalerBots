@@ -9,7 +9,7 @@ public class SalerBotsApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(SalerBotsApplication.class, args);
-		MapFileHandler.saveMaps();
+
 		MapFileHandler.loadMaps();
 	}
 
