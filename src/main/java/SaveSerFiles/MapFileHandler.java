@@ -13,7 +13,7 @@ import static com.xakerz.SalerBots.WebHookController.*;
 public class MapFileHandler {
     ///root/SalerBots/SalerBots/SalerBots_jar/maps.ser
     //C:\Users\rpant\IdeaProjects\SalerBots\maps.ser
-static String pathToFile = "root/SalerBots/SalerBots/SalerBots_jar/maps.ser";
+static String pathToFile = "root/SalerBots/SalerBots/maps.ser";
 
     public static void saveMaps() {
         try {
